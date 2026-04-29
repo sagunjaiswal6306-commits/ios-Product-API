@@ -1,5 +1,11 @@
 import Foundation
 
+enum NetworkError: Error {
+    case invalidURL
+    case noData
+    case decodingError
+}
+
 class ProductService {
     
     func fetchProduct(completion: @escaping (Result<Product, Error>) -> Void) {
@@ -7,7 +13,7 @@ class ProductService {
         let urlString = "https://dummyjson.com/products/1"
         
         guard let url = URL(string: urlString) else {
-            print("Invalid URL")
+            completion(.failure(NetworkError.invalidURL))
             return
         }
         
@@ -19,7 +25,7 @@ class ProductService {
             }
             
             guard let data = data else {
-                print("No data received")
+                completion(.failure(NetworkError.noData))
                 return
             }
             
@@ -27,7 +33,7 @@ class ProductService {
                 let product = try JSONDecoder().decode(Product.self, from: data)
                 completion(.success(product))
             } catch {
-                completion(.failure(error))
+                completion(.failure(NetworkError.decodingError))
             }
             
         }.resume()
