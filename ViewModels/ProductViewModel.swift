@@ -2,33 +2,31 @@ class ProductViewModel {
     
     private let service = ProductService()
     
-    var isLoading: Bool = false
     var product: Product?
     var errorMessage: String?
+    var isLoading = false
     
-    func fetchProduct(completion: @escaping () -> Void) {
+    func fetchProduct() {
         
         isLoading = true
         print("Loading started...")
         
-        service.fetchProduct { [weak self] result in
-            
-            guard let self = self else { return }
-            
-            self.isLoading = false
-            
-            switch result {
+        Task {
+            do {
+                let result = try await service.fetchProduct()
                 
-            case .success(let product):
-                self.product = product
+                self.product = result
                 self.errorMessage = nil
                 
-            case .failure(let error):
+                print("Title: \(result.title)")
+                
+            } catch {
                 self.errorMessage = error.localizedDescription
-                self.product = nil
+                print("Error: \(error.localizedDescription)")
             }
             
-            completion()
+            self.isLoading = false
+            print("Loading finished...")
         }
     }
 }
